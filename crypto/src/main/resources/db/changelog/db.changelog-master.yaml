@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: db.create_table_user.xml
+      relativeToChangelogFile: true

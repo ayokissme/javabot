@@ -6,13 +6,11 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author nnikolaev
- * @since 15.05.2023
+ * @since 20.05.2023
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "tg.bot.crypto")
-public class BotConfigProps {
-    private String token;
-    private String username;
-    private String channel;
+@ConfigurationProperties(prefix = "api")
+public class ApiProperties {
+    String coinpaprika;
 }
