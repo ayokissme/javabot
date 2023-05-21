@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet author="nnikolaev" id="create_table_alert">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="tbl_user"/>
+            <not>
+                <tableExists tableName="tbl_alert"/>
+            </not>
+        </preConditions>
+        <createTable tableName="tbl_alert">
+            <column name="alert_id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="currency" type="varchar(8)"/>
+            <column name="required_price" type="FLOAT"/>
+            <column name="on_set_price" type="FLOAT"/>
+            <column name="user_id" type="bigint"/>
+        </createTable>
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="tbl_alert"
+                                 constraintName="tbl_alert_user_id_fkey" onDelete="CASCADE"
+                                 referencedColumnNames="user_id"
+                                 referencedTableName="tbl_user"/>
+    </changeSet>
+
+    <changeSet id="create_tbl_alert_seq" author="nnikolaev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="tbl_alert_seq"/>
+            </not>
+        </preConditions>
+        <createSequence dataType="bigint" sequenceName="tbl_alert_seq" startValue="1000"/>
+    </changeSet>
+</databaseChangeLog>

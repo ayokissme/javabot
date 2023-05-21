@@ -13,12 +13,14 @@ import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import tg.bot.crypto.callback.ICallbacksHandler;
 import tg.bot.crypto.config.BotConfigProps;
+import tg.bot.crypto.entities.User;
 import tg.bot.crypto.exceptions.EmptyMessageException;
 import tg.bot.crypto.exceptions.MessageNotHandledException;
 import tg.bot.crypto.exceptions.UnknownMessageTypeException;
 import tg.bot.crypto.handlers.ITelegramCommandHandler;
 import tg.bot.crypto.services.handler.ICommandHandler;
 import tg.bot.crypto.services.user.UserService;
+import tg.bot.crypto.user.state.IStateExecutor;
 
 /**
  * @author nnikolaev
@@ -31,17 +33,20 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final ICommandHandler commandHandler;
     private final ICallbacksHandler callbacksHandler;
     private final UserService userService;
+    private final IStateExecutor stateExecutor;
 
     private final String botUsername;
     private final String channel;
 
-    public TelegramBot(BotConfigProps botProps, ICommandHandler commandHandler, ICallbacksHandler callbacksHandler, UserService userService) {
+    public TelegramBot(BotConfigProps botProps, ICommandHandler commandHandler, ICallbacksHandler callbacksHandler, UserService userService,
+        IStateExecutor stateExecutor) {
         super(botProps.getToken());
         this.botUsername = botProps.getUsername();
         this.channel = botProps.getChannel();
         this.commandHandler = commandHandler;
         this.callbacksHandler = callbacksHandler;
         this.userService = userService;
+        this.stateExecutor = stateExecutor;
     }
 
     @Override
@@ -51,9 +56,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         String text = message(update).getText();
         log.info("Received message from chat (id='{}'): '{}'", chatId, text);
 
-        if (!userService.exists(chatId)) {
-            userService.save(chatId, userName);
-        }
+        User user = getUser(chatId, userName);
 
         if (channel != null && isNotSubscribedOnChannel(chatId)) {
             log.info("User '{}' is not subscribed to the '{}'", chatId, channel);
@@ -61,6 +64,30 @@ public class TelegramBot extends TelegramLongPollingBot {
             return;
         }
 
+        if (user.getLastState() != null) {
+            if (update.hasMessage() && text.startsWith("/")) {
+                stateExecutor.cleanUserAndAlert(user);
+            } else if (update.hasCallbackQuery()) {
+                EditMessageText editMessageText = stateExecutor.cancelAndGetMessage(update.getCallbackQuery(), user);
+                editMessage(editMessageText, update.getCallbackQuery().getId());
+                log.info("Creating alert was canceled for user '{}'", user.getId());
+                return;
+            } else {
+                log.info("Executing '{}' for user '{}'", user.getLastState(), user.getId());
+                sendMessage(stateExecutor.executeAndGetMessage(update, user));
+                return;
+            }
+        }
+
+        generateMessageForSending(update, chatId);
+    }
+
+    @Override
+    public String getBotUsername() {
+        return botUsername;
+    }
+
+    private void generateMessageForSending(Update update, Long chatId) {
         if (update.hasMessage()) {
             if (!update.getMessage().hasText()) {
                 throw new EmptyMessageException("Message does not contain any text");
@@ -76,14 +103,14 @@ public class TelegramBot extends TelegramLongPollingBot {
         } else {
             throw new MessageNotHandledException("Message type is not supported");
         }
+
     }
 
-    @Override
-    public String getBotUsername() {
-        return botUsername;
+    private User getUser(Long chatId, String userName) {
+        return !userService.exists(chatId) ? userService.save(chatId, userName) : userService.getUser(chatId).orElseThrow();
     }
 
-    private void sendMessage(SendMessage message) {
+    public void sendMessage(SendMessage message) {
         try {
             execute(message);
             log.info("Message sent to chat (id='{}'): '{}'\n", message.getChatId(), message.getText());
@@ -105,7 +132,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void sendUpToDateNotification(String id) {
         AnswerCallbackQuery answer = new AnswerCallbackQuery();
         answer.setCallbackQueryId(id);
-        answer.setText("The currency is up to date");
+        answer.setText("Валюта находится в актуальном состоянии");
         answer.setCacheTime(2);
         try {
             execute(answer);
@@ -127,7 +154,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private SendMessage notSubscribedMessage(long chatId) {
         SendMessage message = new SendMessage();
-        message.setText(String.format("To use the bot, you need to subscribe to this channel: %s", channel));
+        message.setText(String.format("Чтобы использовать бота, вам необходимо быть подписанным на канал: %s", channel));
         message.setChatId(chatId);
         return message;
     }

@@ -1,14 +1,13 @@
-package tg.bot.crypto.currencies;
+package tg.bot.crypto.callbacks;
 
 import java.util.List;
 import lombok.Getter;
-import tg.bot.crypto.exceptions.CurrencyNotFoundException;
 
 /**
  * @author nnikolaev
  * @since 20.05.2023
  */
-public enum Currency {
+public enum Currency implements ICallback {
 
     REFRESH("refresh"),
     BTC("btc-bitcoin"),
@@ -30,17 +29,9 @@ public enum Currency {
         this.id = id;
     }
 
-    public String callbackName() {
-        return this.name() + CALLBACK_END;
-    }
-
-    public static Currency parseCurrency(String data) {
-        String currencyString = data.replace(CALLBACK_END, "");
-        try {
-            return Currency.valueOf(currencyString);
-        } catch (IllegalArgumentException e) {
-            throw new CurrencyNotFoundException(String.format("Currency type '%s' id not supported", currencyString));
-        }
+    @Override
+    public String callbackName(String callbackEnd) {
+        return this.name() + callbackEnd;
     }
 
     public static List<List<Currency>> keyboardCurrencyRows() {

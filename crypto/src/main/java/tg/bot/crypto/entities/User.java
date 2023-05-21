@@ -2,6 +2,8 @@ package tg.bot.crypto.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -18,9 +20,13 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long id;
 
     @Column
     private String username;
+
+    @Column(name = "last_state")
+    @Enumerated(value = EnumType.STRING)
+    private UserLastState lastState;
 }

@@ -2,21 +2,16 @@ package tg.bot.crypto.services.coinprice;
 
 import com.google.gson.Gson;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import tg.bot.crypto.config.ApiProperties;
-import tg.bot.crypto.currencies.Currency;
-import tg.bot.crypto.handlers.CoinPriceHandler;
+import tg.bot.crypto.callbacks.CallbackUtils;
+import tg.bot.crypto.callbacks.Currency;
+import tg.bot.crypto.keyboards.InlineKeyboardUtils;
+import tg.bot.crypto.services.api.parser.ApiParserService;
 
 /**
  * @author nnikolaev
@@ -26,54 +21,43 @@ import tg.bot.crypto.handlers.CoinPriceHandler;
 @RequiredArgsConstructor
 public class CoinPriceServiceImpl implements CoinPriceService {
 
-    private final ApiProperties apiProperties;
-    private final CoinPriceHandler coinPriceHandler;
+    private final ApiParserService apiParserService;
 
     @Override
-    public String getMessage(String data) {
-        Currency currency = Currency.parseCurrency(data);
-        String json = getJsonFromApi(currency);
+    public String getMessage(CallbackQuery callbackQuery) {
+        String data = callbackQuery.getData();
+        Currency currency = CallbackUtils.parseCallback(Currency.class, data, Currency.CALLBACK_END);
+        String json = apiParserService.getJsonFromApi(currency);
         return formatMessage(json);
     }
 
     @Override
-    public InlineKeyboardMarkup generateKeyboard(String data) {
-        Currency currency = Currency.parseCurrency(data);
-        List<List<InlineKeyboardButton>> keyboard = coinPriceHandler.generateReplyKeyboard().getKeyboard();
-        keyboard.add(0, List.of(refreshButton(currency.callbackName())));
+    public InlineKeyboardMarkup generateKeyboard(CallbackQuery callbackQuery) {
+        String data = callbackQuery.getData();
+        Currency currency = CallbackUtils.parseCallback(Currency.class, data, Currency.CALLBACK_END);
+        var keyboard = InlineKeyboardUtils.currenciesKeyboard(Currency.CALLBACK_END).getKeyboard();
+        keyboard.add(0, List.of(refreshButton(currency.callbackName(Currency.CALLBACK_END))));
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         keyboardMarkup.setKeyboard(keyboard);
         return keyboardMarkup;
     }
 
     private String formatMessage(String json) {
-        Gson gson = new Gson();
-        CurrencyModel model = gson.fromJson(json, CurrencyModel.class);
+        CurrencyModel model = apiParserService.getModel(json);
         DecimalFormat decimalFormat = new DecimalFormat("###,###,###.###");
         String price = decimalFormat.format(model.getPrice());
         String marketCap = model.getMarketCap().toString().equals("0") ? "unknown" : decimalFormat.format(model.getMarketCap());
         return String.format("""
-            Symbol: %s
+            Символ: %s
             
-            Name: %s
+            Название: %s
             
-            Price: %s $
+            Цена: %s $
             
-            Percent Change 24h: %s%%
+            Изменение за день: %s%%
             
-            Marketcap: %s
+            Капитализация: %s
             """, model.getSymbol(), model.getName(), price, model.getPercentChange24h(), marketCap);
-    }
-
-    private String getJsonFromApi(Currency currency) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        String url = apiProperties.getCoinpaprika() + currency.getId();
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
-        return responseEntity.getBody();
     }
 
     private InlineKeyboardButton refreshButton(String data) {
