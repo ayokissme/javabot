@@ -27,7 +27,7 @@ public class AlertScheduleService {
     private final AlertService alertService;
     private final ApiParserService apiParserService;
 
-    @Scheduled(fixedRate = 90000)
+    @Scheduled(fixedRate = 120000)
     public void checkAlerts() {
         List<Alert> allAlerts = alertService.findAllByPriceIsNotNull();
         Set<Currency> currencies = allAlerts.stream().map(Alert::getCurrency).collect(Collectors.toSet());

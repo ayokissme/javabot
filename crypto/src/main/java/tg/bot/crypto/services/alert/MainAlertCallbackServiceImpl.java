@@ -87,7 +87,7 @@ public class MainAlertCallbackServiceImpl extends AlertCallbackBaseService {
         int pageNumber = CallbackUtils.parseListAlertPageNumber(data);
 
         alertsForUserCount = alertService.count(user);
-        if (CallbackUtils.isForDelete(data) && alertsForUserCount == pageNumber) {
+        if (CallbackUtils.isForDelete(data) && alertsForUserCount == pageNumber && pageNumber > 0) {
             pageNumber--;
         }
 
