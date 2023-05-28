@@ -8,8 +8,8 @@ import lombok.Getter;
  */
 public enum Alert implements ICallback {
 
-    ADD("➕ Добавить уведомление"),
-    LIST("\uD83D\uDDC2 Список уведомлений");
+    ADD("➕ Добавить оповещение"),
+    LIST("\uD83D\uDDC2 Список оповещений");
 
     public static final String CALLBACK_END = "_alert";
 

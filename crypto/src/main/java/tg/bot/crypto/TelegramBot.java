@@ -6,6 +6,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -18,6 +19,7 @@ import tg.bot.crypto.exceptions.EmptyMessageException;
 import tg.bot.crypto.exceptions.MessageNotHandledException;
 import tg.bot.crypto.exceptions.UnknownMessageTypeException;
 import tg.bot.crypto.handlers.ITelegramCommandHandler;
+import tg.bot.crypto.handlers.ImageCommandHandler;
 import tg.bot.crypto.services.handler.ICommandHandler;
 import tg.bot.crypto.services.user.UserService;
 import tg.bot.crypto.user.state.IStateExecutor;
@@ -96,7 +98,11 @@ public class TelegramBot extends TelegramLongPollingBot {
             String commandName = update.getMessage().getText();
             ITelegramCommandHandler handler = commandHandler.handle(commandName);
             handler.execute(update);
-            sendMessage(handler.getMessage(chatId));
+            if (handler instanceof ImageCommandHandler imageCommandHandler) {
+                sendPhoto(imageCommandHandler.getPhoto(chatId));
+            } else {
+                sendMessage(handler.getMessage(chatId));
+            }
         } else if (update.hasCallbackQuery()) {
             EditMessageText editMessageText = callbacksHandler.execute(update.getCallbackQuery());
             editMessage(editMessageText, update.getCallbackQuery().getId());
@@ -114,6 +120,15 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(message);
             log.info("Message sent to chat (id='{}'): '{}'\n", message.getChatId(), message.getText());
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendPhoto(SendPhoto photo) {
+        try {
+            execute(photo);
+            log.info("Image sent to chat (id='{}')", photo.getChatId());
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -154,7 +169,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private SendMessage notSubscribedMessage(long chatId) {
         SendMessage message = new SendMessage();
-        message.setText(String.format("Чтобы использовать бота, вам необходимо быть подписанным на канал: %s", channel));
+        message.setText(String.format(
+            "Перед началом тебе нужно подписаться на телеграмм-каналы наших партнеров. Переходи по ссылкам ниже и подписывайся: %s", channel
+        ));
         message.setChatId(chatId);
         return message;
     }

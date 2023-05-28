@@ -93,7 +93,7 @@ public class MainAlertCallbackServiceImpl extends AlertCallbackBaseService {
 
         alertsOnPage = alertService.findByUser(user, pageNumber);
         if (alertsOnPage.isEmpty()) {
-            return "Список уведомлений пуст";
+            return "Список оповещений пуст";
         }
 
         Alert alert = alertsOnPage.get(0);

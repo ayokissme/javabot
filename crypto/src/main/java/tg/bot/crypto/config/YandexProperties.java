@@ -10,9 +10,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "api")
-public class ApiProperties {
-    String coinpaprika;
-    String yandexBucket;
-    String fearAndGreed;
+@ConfigurationProperties(prefix = "yc")
+public class YandexProperties {
+    private String bucket;
+    private String accessKey;
 }

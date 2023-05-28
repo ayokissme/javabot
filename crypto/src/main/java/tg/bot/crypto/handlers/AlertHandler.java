@@ -18,7 +18,7 @@ public class AlertHandler extends BaseCommandHandler {
     @Override
     public SendMessage getMessage(Long chatId) {
         SendMessage message = new SendMessage();
-        message.setText("Вы можете установить уведомление, чтобы бот оповестил вас при достижении необходимой цены");
+        message.setText("Вы можете создать оповещение об изменении курса выбранной криптовалюты или удалить существующее");
         message.setChatId(chatId);
         message.setReplyMarkup(generateReplyKeyboard());
         return message;
@@ -31,6 +31,6 @@ public class AlertHandler extends BaseCommandHandler {
 
     @Override
     public BotCommand getCommand() {
-        return new BotCommand(COMMAND, "Set the price change notification");
+        return new BotCommand(COMMAND, "Оповещение");
     }
 }

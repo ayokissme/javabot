@@ -39,6 +39,6 @@ public class CoinPriceHandler extends BaseCommandHandler {
 
     @Override
     public BotCommand getCommand() {
-        return new BotCommand(COMMAND, "Узнать текущую цену валюты");
+        return new BotCommand(COMMAND, "Узнать текущий курс валюты");
     }
 }

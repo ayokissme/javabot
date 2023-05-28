@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import tg.bot.crypto.handlers.AlertHandler;
 import tg.bot.crypto.handlers.CoinPriceHandler;
-import tg.bot.crypto.handlers.SettingsHandler;
+import tg.bot.crypto.handlers.FearAndGreedHandler;
+import tg.bot.crypto.handlers.HelpHandler;
 import tg.bot.crypto.handlers.StartHandler;
 import tg.bot.crypto.services.BotCommandsService;
 
@@ -24,18 +25,24 @@ public class CommandHandlerInit {
 
     private final StartHandler startHandler;
     private final CoinPriceHandler coinPriceHandler;
-    private final SettingsHandler settingsHandler;
+//    private final SettingsHandler settingsHandler;
     private final AlertHandler alertHandler;
+    private final FearAndGreedHandler fearAndGreedHandler;
+    private final HelpHandler helpHandler;
 
     @PostConstruct
     public void init() {
         botCommandsService.addCommand(coinPriceHandler.getCommand());
         botCommandsService.addCommand(alertHandler.getCommand());
-        botCommandsService.addCommand(settingsHandler.getCommand());
+        botCommandsService.addCommand(fearAndGreedHandler.getCommand());
+        botCommandsService.addCommand(helpHandler.getCommand());
+//        botCommandsService.addCommand(settingsHandler.getCommand());
 
         commandHandler.addHandler(StartHandler.COMMAND, startHandler);
         commandHandler.addHandler(CoinPriceHandler.COMMAND, coinPriceHandler);
         commandHandler.addHandler(AlertHandler.COMMAND, alertHandler);
-        commandHandler.addHandler(SettingsHandler.COMMAND, settingsHandler);
+        commandHandler.addHandler(FearAndGreedHandler.COMMAND, fearAndGreedHandler);
+        commandHandler.addHandler(HelpHandler.COMMAND, helpHandler);
+//        commandHandler.addHandler(SettingsHandler.COMMAND, settingsHandler);
     }
 }

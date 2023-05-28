@@ -52,7 +52,7 @@ public class StateExecutor implements IStateExecutor {
                 userService.update(user);
                 log.info("Last state for user {} set: {}", user.getId(), null);
 
-                sendMessage.setText(String.format("Уведомление о достижении цены <b>%s</b> для <b>%s</b> успешно установлено",
+                sendMessage.setText(String.format("Оповещение о достижении цены <b>%s</b> для <b>%s</b> успешно установлено",
                     alert.getRequiredPrice(),
                     alert.getCurrency()));
                 sendMessage.setReplyMarkup(InlineKeyboardUtils.alertsMainKeyboard());

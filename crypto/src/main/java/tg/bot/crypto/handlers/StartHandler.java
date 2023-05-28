@@ -18,13 +18,13 @@ public class StartHandler extends BaseCommandHandler {
     @Override
     public SendMessage getMessage(Long chatId) {
         SendMessage message = new SendMessage();
-        message.setText("started");
+        message.setText("Привет! Я CryptoBot. С моей помощью, ты сможешь быстрее найти информацию об интересующей тебя криптовалюте.");
         message.setChatId(chatId);
         return message;
     }
 
     @Override
     public BotCommand getCommand() {
-        return new BotCommand(COMMAND, "it's start command");
+        return null;
     }
 }

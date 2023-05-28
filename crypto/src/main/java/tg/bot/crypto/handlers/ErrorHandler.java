@@ -21,7 +21,7 @@ public class ErrorHandler extends BaseCommandHandler {
     @Override
     public SendMessage getMessage(Long chatId) {
         SendMessage message = new SendMessage();
-        message.setText("Command not found!");
+        message.setText("Команда не найдена!");
         message.setChatId(chatId);
         return message;
     }
